@@ -1,0 +1,11 @@
+#ifndef TA_FOG_SHAPE_MATH_USH
+#define TA_FOG_SHAPE_MATH_USH
+float3 TAFogRotate(float4 q,float3 v) { return v+2*cross(q.xyz,cross(q.xyz,v)+q.w*v); }
+float TAFogProxyDistance(float3 x,float4 centerShape,float4 rotation,float3 size)
+{
+    float3 p=TAFogRotate(float4(-rotation.xyz,rotation.w),x-centerShape.xyz);
+    if(centerShape.w<.5) return length(p)-size.x;
+    if(centerShape.w<1.5) { p.z-=clamp(p.z,-(size.y-size.x),size.y-size.x); return length(p)-size.x; }
+    float3 d=abs(p)-size; return length(max(d,0))+min(max(d.x,max(d.y,d.z)),0);
+}
+#endif

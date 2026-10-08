@@ -1,0 +1,41 @@
+#ifndef TA_FOG_TERRAIN_USH
+#define TA_FOG_TERRAIN_USH
+#include "/Plugin/TA_ToonVolumetricLighting/Private/TAFogSoftBoundary.ush"
+uint EnvironmentFlags;
+uint DetailSeed;
+float4 EnvWind;
+float4 EnvCooling;
+float4 EnvDynamics;
+float4 EnvSources;
+float4 EnvDetail;
+int2 TerrainSize;
+StructuredBuffer<float2> TerrainSamples;
+float TerrainHeightAt(float2 x)
+{
+    if(any(TerrainSize<=0)) return 0;
+    float2 g=x/H+.5; int2 base=int2(floor(g)); float2 f=frac(g); float height=0;
+    [unroll] for(uint k=0;k<4;k++)
+    {
+        int2 o=int2(k&1,k>>1); int2 p=clamp(base+o,0,TerrainSize-1);
+        float2 w=lerp(1-f,f,float2(o)); height+=w.x*w.y*TerrainSamples[p.y*TerrainSize.x+p.x].x;
+    }
+    return max(height,0); // fixed domain bottom remains solid
+}
+float GroundDistanceAt(float3 x) { return max(x.z-TerrainHeightAt(x.xy),0); }
+float3 TerrainNormalAt(float2 x)
+{
+    float hx=(TerrainHeightAt(x+float2(H,0))-TerrainHeightAt(x-float2(H,0)))/(2*H);
+    float hy=(TerrainHeightAt(x+float2(0,H))-TerrainHeightAt(x-float2(0,H)))/(2*H);
+    return normalize(float3(-hx,-hy,1));
+}
+bool TerrainSolidAt(float3 x) { return x.z<=TerrainHeightAt(x.xy); }
+float3 HeightWind(float3 x,float3 wind)
+{
+    if((EnvironmentFlags&1u)==0) return wind;
+    float a=GroundDistanceAt(x),ratio=lerp(EnvWind.x,1,saturate(log(1+a/EnvWind.z)/log(1+EnvWind.y/EnvWind.z)));
+    float angle=EnvDynamics.w*(1-exp(-a/EnvWind.y)),s,c; sincos(angle,s,c);
+    float3 target=float3(c*wind.x-s*wind.y,s*wind.x+c*wind.y,wind.z)*ratio;
+    float3 normal=TerrainNormalAt(x.xy);
+    return lerp(target,target-dot(target,normal)*normal,exp(-a/EnvWind.w));
+}
+#endif

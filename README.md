@@ -1,21 +1,35 @@
 # TA Cloud, Fog & Interaction
 
-UE 5.7.4 云、实时雾与交互源码摘录 / Cloud, realtime fog and interaction source excerpts
+UE 云雾系列：雾气数学、交互数据契约与地形采样摘录
 
-NiTong 的云雾系列将云层与局部体积、密度场创作、艺术化光照、实时浓度/速度场和运动代理组织为项目级 UE 插件。这里提供当前 C++、USF/USH 和 GPU 数据契约的可阅核心，便于沿入口理解模块职责与数据流。
+这组作品围绕云、实时雾和场景交互展开。当前公开版本提供 6 份小型 C++ / HLSL 文件，展示雾段光学累积、运动代理形状、交互/环境数据布局和地形高度采样；Cloud 系列另附[架构说明](Docs/Cloud_Architecture.md)。
 
-| 系统 / System | 当前模块 / Modules | 阅读入口 / Entry |
-| --- | --- | --- |
-| 天空云与局部云、烘焙雾 / Sky and local clouds, baked fog | TA_ToonCloud + TA_ToonCloudEditor | TAToonCloudActor / TAToonCloudVolumeActor / TAToonFogVolumeActor; density builders; TAToonCloudRenderer |
-| 实时雾 / Realtime fog | TA_ToonVolumetricLighting | TAToonRealtimeFogActor / Component / Renderer; TARealtimeFog.usf |
-| 运动代理和局部效果 / Moving proxies and local effects | TA_ToonVolumetricLighting | TAToonRealtimeFogInteractorComponent; TAToonRealtimeFogEffectComponent; TAFogInteraction.ush |
-| 世界分区、表面查询 / World partitions and surface queries | TAWorldInteractionRuntime excerpts | TAWorldInteractionPartition; TAWorldSurfaceHeight |
-| 风场与植被历史 / Wind field and foliage history | SceneWind shader excerpts | SceneWindField.usf; SceneWindFoliageHistoryUpdate.usf |
+## 公开源码入口
 
-NiTong 的实现贡献包括插件生命周期、Actor/Component 与反射属性、密度场编辑器工具、RDG 调度、缓存与历史资源管理、解析交互代理、诊断接口和 Shader 数据布局。体积传输、噪声、平流、压力投影及插值采用已有数学方法与 UE API；方法来源见 [ATTRIBUTION.md](ATTRIBUTION.md)。
+| 文件 | 内容 |
+| --- | --- |
+| [TAFogOptics.ush](Plugins/TA_ToonVolumetricLighting/Shaders/Private/TAFogOptics.ush) | 雾段散射与透射率累积，调用外部 Beer–Lambert 透射率函数 |
+| [TAFogShapeMath.ush](Plugins/TA_ToonVolumetricLighting/Shaders/Private/TAFogShapeMath.ush) | 四元数旋转，以及球、胶囊、盒代理的距离计算 |
+| [TAToonFogInteraction.h](Plugins/TA_ToonVolumetricLighting/Source/TA_ToonVolumetricLighting/Private/TAToonFogInteraction.h) | 运动记录、修订/时间区间、CPU/GPU 交互数据布局和采集函数声明 |
+| [TAToonFogEnvironment.h](Plugins/TA_ToonVolumetricLighting/Source/TA_ToonVolumetricLighting/Private/TAToonFogEnvironment.h) | 地形快照、环境参数、局部效果记录和数据包 |
+| [TAToonFogEnvironmentParameters.inl](Plugins/TA_ToonVolumetricLighting/Source/TA_ToonVolumetricLighting/Private/TAToonFogEnvironmentParameters.inl) | 求解与显示共享的 RDG Shader 参数声明 |
+| [TAFogTerrain.ush](Plugins/TA_ToonVolumetricLighting/Shaders/Private/TAFogTerrain.ush) | 双线性高度采样、地面距离/法线、地形判定和近地风向调整 |
 
-本仓库为核心摘录，保留原相对目录。部分云传输 Shader、SceneWind/WorldInteraction 核心和引擎接口实现未随包提供，因此不能直接作为完整插件构建。Realtime Fog 有自己的浓度/速度场；Global Fog 则需要定制原生 Froxel 接口。具体依赖、缺失文件与集成边界见 [DEPENDENCIES.md](DEPENDENCIES.md)。
+这些文件保留项目相对目录，可用于阅读数据如何在场景、渲染请求与 Shader 之间组织。参数布局和适配代码属于 NiTong 的项目实现；光学、插值、四元数和解析距离计算采用已有数学方法，见[来源说明](ATTRIBUTION.md)。
 
-This collection presents project-specific C++, shaders and data contracts for cloud rendering, realtime fog and interaction. It is a source excerpt for reading and integration study. The complete runtime, dependency plugins, custom engine bridge and serialized assets must be supplied separately. Build, shader, Editor/PIE, visual and GPU performance validation were not run for this package.
+## 范围与依赖
 
-Start with the [core source guide](Docs/Core_Source_Guide.md). See [architecture](Docs/Architecture_CN_EN.md), [dependencies](DEPENDENCIES.md) and [file manifest](FILE_MANIFEST.csv).
+当前版本是局部源码摘录，不能独立安装或运行。完整 RealtimeFog Renderer、主求解/显示 Shader、Interactor/Effect 实现，以及 WorldInteraction、SceneWind 运行时不包含在内。Cloud 的运行时、Editor 集成和渲染核心也未公开在此版本中。
+
+原项目目标为 UE 5.7.4 源码工程。摘录依赖 Unreal Engine 类型、RDG/Shader 参数宏和未随附的项目 Shader 辅助函数；具体见 [DEPENDENCIES.md](DEPENDENCIES.md)。声明的采集函数不等于已提供对应实现。
+
+## 验证
+
+文件内容与清单哈希已核对。未执行 UE 构建、Shader 编译、Editor/PIE、视觉或 GPU 性能测试。
+
+- [文件清单](FILE_MANIFEST.csv)
+- [SHA-256 校验值](SHA256SUMS.txt)
+
+## English
+
+This public selection contains six C++ / HLSL excerpts for fog segment accumulation, proxy geometry, interaction/environment data contracts and terrain sampling. It is a small source-reading collection, not a complete realtime fog or cloud renderer. The full runtime, solver/display shaders, dependency plugins and engine integration are separate. The [Cloud architecture page](Docs/Cloud_Architecture.md) is descriptive only.

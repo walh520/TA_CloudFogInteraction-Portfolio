@@ -1,0 +1,16 @@
+#ifndef TA_FOG_OPTICS_USH
+#define TA_FOG_OPTICS_USH
+#include "/Plugin/TA_ToonVolumetricLighting/Private/TAToonVolumetricGeometry.ush"
+// Shared verbatim with the existing beam/global fog path. SigmaT is per metre.
+void TAIntegrateArtisticFogSegment(
+	inout float3 AccumulatedScattering, inout float AccumulatedTransmittance,
+	float3 ScatteringAlbedo, float3 IncidentRadiance, float Phase,
+	float SigmaT, float StepLengthCm, float SegmentWeight)
+{
+	const float SegmentTransmittance = TABeerLambertTransmittance(SigmaT, StepLengthCm);
+	AccumulatedScattering += AccumulatedTransmittance
+		* max(ScatteringAlbedo, 0.0f.xxx) * max(IncidentRadiance, 0.0f.xxx)
+		* max(Phase, 0.0f) * (1.0f - SegmentTransmittance) * saturate(SegmentWeight);
+	AccumulatedTransmittance *= lerp(1.0f, SegmentTransmittance, saturate(SegmentWeight));
+}
+#endif
