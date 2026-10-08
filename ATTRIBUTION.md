@@ -9,8 +9,8 @@
 
 项目实现与接口适配不改变这些数学方法的归属。Unreal Engine API、类型及另外提供的引擎/插件依赖保留各自的所有权与适用条款。此版本未包含引擎实现或序列化资产，也未提供所缺依赖的授权。
 
-Cloud 页面仅描述设计；完整 Cloud 与 RealtimeFog 实现不在本次公开源码中。
+新增 [CoreAlgorithms](CoreAlgorithms/README.md) 收录烘焙、光线步进与艺术 DA 的函数级适配；具体项目入口、独立讲解重写与数学背景见[函数映射](CoreAlgorithms/SOURCE_MAP.md)和[核心数学来源](CoreAlgorithms/ATTRIBUTION.md)。完整 Cloud 与 RealtimeFog 渲染管线仍未随附。
 
 ## English
 
-The excerpts preserve project-specific names, data layouts and paths from NiTong's TA_ToonVolumetricLighting project. Optical accumulation, quaternion rotation, analytic distance functions, interpolation and finite differences build on established mathematical methods. Unreal Engine APIs and separately supplied implementations retain their ownership and applicable terms. The Cloud description is architectural prose; its implementation is not included.
+The excerpts preserve project-specific names, data layouts and paths from NiTong's TA_ToonVolumetricLighting project. Optical accumulation, quaternion rotation, analytic distance functions, interpolation and finite differences build on established mathematical methods. Unreal Engine APIs and separately supplied implementations retain their ownership and applicable terms. The CoreAlgorithms directory adds function-level baking, ray-stepping and art-response adaptations with a separate source map. Complete Cloud and RealtimeFog engine integration is not included.

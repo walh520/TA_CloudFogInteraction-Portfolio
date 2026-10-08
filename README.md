@@ -1,10 +1,20 @@
 # TA Cloud, Fog & Interaction
 
-UE 云雾系列：雾气数学、交互数据契约与地形采样摘录
+UE 云雾系列：云密度烘焙、光线步进、艺术 DA 渲染与雾气交互数学
 
-这组作品围绕云、实时雾和场景交互展开。当前公开版本提供 6 份小型 C++ / HLSL 文件，展示雾段光学累积、运动代理形状、交互/环境数据布局和地形高度采样；Cloud 系列另附[架构说明](Docs/Cloud_Architecture.md)。
+这组作品围绕云、实时雾和场景交互展开。[Cloud 核心算法](CoreAlgorithms/README.md) 展示密度烘焙、周期单元步进、完整路径透射以及共享艺术 Data Asset 的 A4–A8 连续渲染数学；原有六份雾气与交互摘录继续保留。
 
-## 公开源码入口
+## Cloud 核心算法
+
+| 入口 | 内容 |
+| --- | --- |
+| [密度形态](CoreAlgorithms/Baking/CloudMorphology.hlsli) / [烘焙数学](CoreAlgorithms/Baking/bake_math.py) | 云类型高度曲线、Coverage 等值面、形态膨胀、频率约束、周期 halo 与 max/mean mip |
+| [周期步进](CoreAlgorithms/Raymarch/PeriodicStep.hlsli) / [透射求积](CoreAlgorithms/Raymarch/trace_math.py) | 单元面距离、完整路径中点采样、参考预算与失败处理 |
+| [艺术 DA 数学](CoreAlgorithms/Art/CloudArt.hlsli) / [连续 LUT](CoreAlgorithms/Art/ContinuousLUT.hlsli) | Wrap、暗边、银边、Powder、曲率、Inner Glow、天气/距离响应及能量限制 |
+
+[中文算法说明](CoreAlgorithms/ALGORITHMS_CN.md) · [函数映射](CoreAlgorithms/SOURCE_MAP.md) · [数学来源](CoreAlgorithms/ATTRIBUTION.md)
+
+## 雾气与交互源码入口
 
 | 文件 | 内容 |
 | --- | --- |
@@ -15,21 +25,21 @@ UE 云雾系列：雾气数学、交互数据契约与地形采样摘录
 | [TAToonFogEnvironmentParameters.inl](Plugins/TA_ToonVolumetricLighting/Source/TA_ToonVolumetricLighting/Private/TAToonFogEnvironmentParameters.inl) | 求解与显示共享的 RDG Shader 参数声明 |
 | [TAFogTerrain.ush](Plugins/TA_ToonVolumetricLighting/Shaders/Private/TAFogTerrain.ush) | 双线性高度采样、地面距离/法线、地形判定和近地风向调整 |
 
-这些文件保留项目相对目录，可用于阅读数据如何在场景、渲染请求与 Shader 之间组织。参数布局和适配代码属于 NiTong 的项目实现；光学、插值、四元数和解析距离计算采用已有数学方法，见[来源说明](ATTRIBUTION.md)。
+这些文件保留项目相对目录，展示数据如何在场景、渲染请求与 Shader 之间组织。参数布局和适配代码属于 NiTong 的项目实现；基础数学见[来源说明](ATTRIBUTION.md)。Cloud 系列完整结构另见[架构说明](Docs/Cloud_Architecture.md)。
 
 ## 范围与依赖
 
-当前版本是局部源码摘录，不能独立安装或运行。完整 RealtimeFog Renderer、主求解/显示 Shader、Interactor/Effect 实现，以及 WorldInteraction、SceneWind 运行时不包含在内。Cloud 的运行时、Editor 集成和渲染核心也未公开在此版本中。
+Cloud 新增部分按函数整理，采用显式参数、数组与采样回调。接回完整渲染管线时，需要密度采样、射线区间、物理积分结果、重建特征和 LUT 采样；原插件的运行时、Editor、材质/RDG 集成与资产另行接入。
 
-原项目目标为 UE 5.7.4 源码工程。摘录依赖 Unreal Engine 类型、RDG/Shader 参数宏和未随附的项目 Shader 辅助函数；具体见 [DEPENDENCIES.md](DEPENDENCIES.md)。声明的采集函数不等于已提供对应实现。
+原有雾气文件依赖 UE 5.7.4 类型、RDG/Shader 参数宏和项目辅助函数，见 [DEPENDENCIES.md](DEPENDENCIES.md)。完整 RealtimeFog 求解/显示、Interactor/Effect、WorldInteraction 和 SceneWind 运行时仍为独立依赖。
 
 ## 验证
 
-文件内容与清单哈希已核对。未执行 UE 构建、Shader 编译、Editor/PIE、视觉或 GPU 性能测试。
+新增核心算法的 13 项 CPU 数学检查通过，覆盖密度上界、周期层级、步进预算、均匀介质、曲率、LUT 和能量边界。未执行 UE 构建、Shader 编译、Editor/PIE、视觉或 GPU 性能测试。
 
-- [文件清单](FILE_MANIFEST.csv)
-- [SHA-256 校验值](SHA256SUMS.txt)
+- [新增核心文件清单](CoreAlgorithms/FILE_MANIFEST.csv) / [校验值](CoreAlgorithms/SHA256SUMS.txt)
+- [全仓库文件清单](FILE_MANIFEST.csv) / [校验值](SHA256SUMS.txt)
 
 ## English
 
-This public selection contains six C++ / HLSL excerpts for fog segment accumulation, proxy geometry, interaction/environment data contracts and terrain sampling. It is a small source-reading collection, not a complete realtime fog or cloud renderer. The full runtime, solver/display shaders, dependency plugins and engine integration are separate. The [Cloud architecture page](Docs/Cloud_Architecture.md) is descriptive only.
+The Cloud core algorithms cover baking morphology, periodic ray stepping, full-path transmission and Data Asset driven continuous art responses. The existing six C++ / HLSL fog and interaction excerpts remain available. Extracted functions use explicit adapters and have CPU mathematical checks; engine integration and assets are supplied separately.

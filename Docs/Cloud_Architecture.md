@@ -14,6 +14,6 @@ Density/material authoring and final illustration controls are distinct parts of
 
 ## Public scope
 
-This page is an architecture overview. The TA_ToonCloud runtime/editor implementation, shader transport and density authoring code are not included in this repository version. The public source files cover selected fog math, interaction/environment data contracts and terrain sampling; see the [repository overview](../README.md).
+This page is an architecture overview. [CoreAlgorithms](../CoreAlgorithms/README.md) provides selected baking morphology, ray-stepping, transmission and continuous art-response functions with explicit adapters. The complete TA_ToonCloud runtime/editor, material/RDG integration, texture resources and rendering pipeline are separate. The public collection also retains selected fog math, interaction/environment data contracts and terrain sampling; see the [repository overview](../README.md).
 
-Cloud 集成与渲染核心尚未纳入本次公开源码。本文说明模块职责与数据流，不表示当前仓库能运行 Cloud，也不代表已完成构建或效果验证。
+当前已公开部分 Cloud 核心数学函数，完整引擎集成与渲染管线尚未随附。本文说明模块职责与数据流，不表示当前仓库能运行完整 Cloud，也不代表已完成构建或效果验证。
